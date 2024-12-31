@@ -1,68 +1,83 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Models;
+using WebApp.Services;
 
 namespace WebApp.Controllers;
 
 public class ProduktController : Controller
 {
-    static Dictionary<int, Produkt> _produkts = new Dictionary<int, Produkt>();
-    
+    private readonly IProduktService _service;
+
+    public ProduktController(IProduktService service)
+    {
+        _service = service;
+    }
+
     public IActionResult Index()
     {
-        return View(_produkts);
+        var produkty = _service.GetAll().ToDictionary(p => p.Id, p => p);
+        return View(produkty);
+
     }
-    
-    [HttpGet]
+
+    public IActionResult Details(int id)
+    {
+        var produkt = _service.GetById(id);
+        if (produkt == null)
+        {
+            return NotFound();
+        }
+        return View(produkt);
+    }
+
     public IActionResult Create()
     {
         return View();
     }
 
     [HttpPost]
-    public IActionResult Create(Produkt model)
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(Produkt produkt)
     {
-        int id = _produkts.Keys.Count != 0 ? _produkts.Keys.Max() : 0;
-        model.Id = id + 1;
-        _produkts.Add(model.Id, model);
-        return RedirectToAction("Index");
-    }
-
-    public IActionResult Details(int id)
-    {
-        if (_produkts.ContainsKey(id))
+        if (true)
         {
-            return View(_produkts[id]);
-        }  
-        return NotFound();
+            _service.Add(produkt);
+            return RedirectToAction(nameof(Index));
+        }
+        return View(produkt);
     }
 
-    [HttpGet]
     public IActionResult Edit(int id)
     {
-        if (_produkts.ContainsKey(id))
+        var produkt = _service.GetById(id);
+        if (produkt == null)
         {
-            return View(_produkts[id]);
-        } 
-        return NotFound();
+            return NotFound();
+        }
+        return View(produkt);
     }
 
     [HttpPost]
-    public IActionResult Edit(int id, Produkt model)
+    [ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, Produkt produkt)
     {
-        if (_produkts.ContainsKey(id))
+        if (id != produkt.Id || !ModelState.IsValid)
         {
-            _produkts[id] = model;
-            return RedirectToAction("Index");
+            return View(produkt);
         }
-        return NotFound();
+        _service.Update(produkt);
+        return RedirectToAction(nameof(Index));
     }
 
     public IActionResult Delete(int id)
     {
-        if (_produkts.ContainsKey(id))
+        var produkt = _service.GetById(id);
+        if (produkt == null)
         {
-            _produkts.Remove(id);
+            return NotFound();
         }
-        return RedirectToAction("Index");
+
+        _service.Delete(id);
+        return RedirectToAction(nameof(Index));
     }
 }
