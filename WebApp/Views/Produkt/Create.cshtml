@@ -17,9 +17,9 @@
         <span asp-validation-for="Price" class="text-danger"></span>
     </div>
 
-    <div>
+    <div class="form-group">
         <label asp-for="Producent" class="control-label"></label>
-        <input asp-for="Producent" class="form-control" />
+        <select asp-for="Producent" class="form-control" asp-items="Html.GetEnumSelectList<WebApp.Models.ProducentType>()"></select>
         <span asp-validation-for="Producent" class="text-danger"></span>
     </div>
 
